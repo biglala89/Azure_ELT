@@ -1,0 +1,17 @@
+{
+	"name": "SmartFoodsLocalFileSystem",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "FileServer",
+		"typeProperties": {
+			"host": "C:\\Users\\adf_ir",
+			"userId": "adf_ir",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIxNzkxZWVjOC1jYmQ1LTQyYmEtYTliNy01NzEwMzE4NTAxMDYiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "OnPremisesIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

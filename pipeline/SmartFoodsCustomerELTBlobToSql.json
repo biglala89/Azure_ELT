@@ -1,0 +1,106 @@
+{
+	"name": "SmartFoodsCustomerELTBlobToSql",
+	"properties": {
+		"activities": [
+			{
+				"name": "SmartFoodsCustomerELT",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "MaxCustomerKey",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "SmartFoodsCustomerELT",
+						"type": "DataFlowReference",
+						"parameters": {
+							"MaxCustomerKey": {
+								"value": "@activity('MaxCustomerKey').output.firstRow.maxSK",
+								"type": "Expression"
+							},
+							"BatchDt": {
+								"value": "'@{pipeline().parameters.BatchDt}'",
+								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"SmartFoodsCustomerStagingBlob": {
+								"folder": "customers",
+								"filename": {
+									"value": "smartfoods_customers_@{replace(pipeline().parameters.BatchDt,'-','')}",
+									"type": "Expression"
+								},
+								"filetype": {
+									"value": "csv",
+									"type": "Expression"
+								}
+							},
+							"SmartFoodsCustomerSQLDW": {
+								"schema": "SmartFoodsDW",
+								"table_name": "customerDim"
+							},
+							"DBSink": {
+								"schema": "SmartFoodsDW",
+								"table_name": "customerDim"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "MaxCustomerKey",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select coalesce(max(CustomerKey),0) maxSK from SmartFoodsDW.customerdim",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "SmartFoodsDW",
+							"table_name": "customerdim"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"BatchDt": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2020-12-13T07:15:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,138 @@
+{
+	"name": "SmartFoodsRefDataLocalFStoBlob",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetSmartFoodsRefDataFileListLocalFS",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SmartFoodsRefDataLocalFileSystem",
+						"type": "DatasetReference",
+						"parameters": {
+							"file": "*",
+							"filetype": "zip"
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "LoopSmartFoodsLocalFileSystemRefDataFiles",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetSmartFoodsRefDataFileListLocalFS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetSmartFoodsRefDataFileListLocalFS').output.childItems",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "CopySmartFoodsRefDataLocalFStoBlob",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings",
+										"compressionProperties": {
+											"type": "ZipDeflateReadSettings"
+										}
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SmartFoodsRefDataLocalFileSystem",
+									"type": "DatasetReference",
+									"parameters": {
+										"file": {
+											"value": "@first(split(item().name,'.'))",
+											"type": "Expression"
+										},
+										"filetype": {
+											"value": "@last(split(item().name,'.'))",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SmartFoodsDelimitedTextBlobOnlyFolderPram",
+									"type": "DatasetReference",
+									"parameters": {
+										"folder": "ref_data"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-12-11T07:49:34Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
